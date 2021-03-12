@@ -4,6 +4,8 @@ from collections import Counter
 import nltk
 import numpy as np
 
+from book_scraping import BookScraper
+
 
 def print_book(book):
     return print(book)
@@ -117,14 +119,17 @@ def calculate_df_idf(tf, idf):
 
 def main():
     preprocessing = Preprocessing()
+    book_scraper = BookScraper()
 
-    with open('book1.txt', 'r') as file:
-        book_1 = file.read()
+    link_1 = "https://www.gutenberg.org/files/64651/64651-h/64651-h.htm"
+    link_2 = "https://www.gutenberg.org/files/64789/64789-h/64789-h.htm"
 
-    with open('book2.txt', 'r') as file:
-        book_2 = file.read()
+    body_book_1 = book_scraper.get_story(link_1)
+    body_book_2 = book_scraper.get_story(link_2)
 
-    words = preprocessing.split(book_1)
+
+    # words = preprocessing.split(body_book_1)
+    words = body_book_1
     words = preprocessing.clean_punctuation(words)
     words = preprocessing.normalizing_book(words)
     words = preprocessing.remove_stop_words(words)
@@ -134,7 +139,9 @@ def main():
     # words = preprocessing.stem_words(words)
     words = preprocessing.unique_words(words)
 
-    book_2 = preprocessing.split(book_2)
+    book_2 = body_book_2
+
+    # book_2 = preprocessing.split(body_book_2)
     book_2 = preprocessing.clean_punctuation(book_2)
     book_2 = preprocessing.normalizing_book(book_2)
     book_2 = preprocessing.remove_stop_words(book_2)
@@ -144,26 +151,27 @@ def main():
 
     # tf = {'hej': [('book_2_id', 'tf', 'idf', 'tf-idf'), ('book_3_id', 'tf','idf', 'tf-idf')]}
 
-    corpus = [book_2, book_2]
-    words = ["hej", "tjena", "dig"]
-    corpus = [["hej", "hejsan"]]
-
-    # hej
-    # tf = 2/3
-    # df = 1
-    # idf = 1/1 = 1
-    # tf_idf = log(1)
+    corpus = [book_2]
+    # words = ["hej", "tjena", "dig"]
+    # corpus = [["hej", "hejsan"]]
 
 
     tf = calculate_tf(words, corpus)
-    print(f"tf: {tf}")
+    # print(f"tf: {tf}")
     df = calculate_df(words, corpus)
-    print(f"df {df}")
+    # print(f"df {df}")
     idf = calculate_idf(df, corpus)
-    print(f"idf{idf}")
+    # print(f"idf{idf}")
 
     df_idf = calculate_df_idf(tf, idf)
     print(f"df-idf{df_idf}")
+
+    # with open('book1.txt', 'r') as file:
+    #     book_1 = file.read()
+    #
+    # with open('book2.txt', 'r') as file:
+    #     book_2 = file.read()
+
 
 
 
