@@ -1,4 +1,26 @@
 """
+Bugs
+
+im ligger kvar, stopword?
+102 -> 'one hundred and two'
+us -> u
+
+
+# TODO:
+# preprocessing
+#   - Split
+#   - clean_punctuation
+#   - normalizing book
+#   - remove stop words
+#   - remove single characters
+#   - Stemming
+#   - Lemmatisation
+#   - Converting numbers
+
+stemming — need not be a dictionary word,
+removes prefix and affix based on few rules
+
+lemmatization — will be a dictionary word. reduces to a root synonym.
 
 term frequency
 
