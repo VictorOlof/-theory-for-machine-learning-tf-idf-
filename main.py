@@ -1,4 +1,8 @@
 import string
+from collections import Counter
+
+import nltk
+import numpy as np
 
 
 def print_book(book):
@@ -19,6 +23,7 @@ class Preprocessing:
 
     def remove_stop_words(self, book):
         from nltk.corpus import stopwords  # list if stopwords, 'i', 'me', 'my' etc.
+        nltk.download('stopwords')
 
         stop_words = stopwords.words('english')
         return [word for word in book if word not in stop_words]
@@ -29,7 +34,7 @@ class Preprocessing:
     def stem_words(self, book):
         """Ordstam - Example “fishing,” “fished,” “fisher” --> fish | "Rockkks --> rockkk """
         from nltk.stem.porter import PorterStemmer
-        print("without stem: ", book)
+
         porter = PorterStemmer()
         return [porter.stem(word) for word in book]
 
@@ -52,33 +57,112 @@ class Preprocessing:
                 new_book.append(word)
         return new_book
 
+    def unique_words(self, words):
+        return set(words)
 
-def calculate_tf(self):
-    pass
 
+def calculate_tf(words, corpus):
+    result = {}
+
+    for word in words:
+        result[word] = []
+
+    for word in words:
+        for i, document in enumerate(corpus):
+            if word in set(document):
+                tf = document.count(word)/len(document)
+                result[word].append([i, tf])
+            else:
+                result[word].append([i, 0])
+    return result
+
+
+def calculate_df(words, corpus):
+    df = {}
+    for word in words:
+        df[word] = 0
+
+    for word in words:
+        for book in corpus:
+            if word in book:
+                df[word] = df[word] + 1
+    return df
+
+def calculate_idf(df, corpus):
+    idf = {}
+
+    N = len(corpus)
+
+    for key, df in df.items():
+        if df == 0:
+            idf[key] = 0
+        else:
+            idf[key] = np.log(N / df + 1)
+
+    return idf
+
+
+def calculate_df_idf(tf, idf):
+    tf_idf_dict = {}
+
+    for word in tf.keys():
+        tf_idf_dict[word] = []
+
+    for word, pairs in tf.items():
+        for pair in pairs:
+            index, tf = pair
+            tf_idf = tf * idf[word]
+            tf_idf_dict[word].append([index, tf_idf])
+    return tf_idf_dict
 
 def main():
     preprocessing = Preprocessing()
 
-    file = open('book1.txt', 'rt')
-    book_1 = file.read()
-    file.close()
-    file = open('book2.txt', 'rt')
-    book_2 = file.read()
-    file.close()
+    with open('book1.txt', 'r') as file:
+        book_1 = file.read()
 
-    book_1 = preprocessing.split(book_1)
-    book_1 = preprocessing.clean_punctuation(book_1)
-    book_1 = preprocessing.normalizing_book(book_1)
-    book_1 = preprocessing.remove_stop_words(book_1)
+    with open('book2.txt', 'r') as file:
+        book_2 = file.read()
 
-    print_book(book_1)
+    words = preprocessing.split(book_1)
+    words = preprocessing.clean_punctuation(words)
+    words = preprocessing.normalizing_book(words)
+    words = preprocessing.remove_stop_words(words)
+    words = preprocessing.remove_single_characters(words)
+    words = preprocessing.numbers_to_word(words)
+    # words = preprocessing.lemmatization_words(words)
+    # words = preprocessing.stem_words(words)
+    words = preprocessing.unique_words(words)
 
-    book_1 = preprocessing.numbers_to_word(book_1)
-    book_1 = preprocessing.lemmatization_words(book_1)
-    book_1 = preprocessing.stem_words(book_1)
+    book_2 = preprocessing.split(book_2)
+    book_2 = preprocessing.clean_punctuation(book_2)
+    book_2 = preprocessing.normalizing_book(book_2)
+    book_2 = preprocessing.remove_stop_words(book_2)
+    book_2 = preprocessing.numbers_to_word(book_2)
+    # book_2 = preprocessing.lemmatization_words(book_2)
+    # book_2 = preprocessing.stem_words(book_2)
 
-    print_book(book_1)
+    # tf = {'hej': [('book_2_id', 'tf', 'idf', 'tf-idf'), ('book_3_id', 'tf','idf', 'tf-idf')]}
+
+    corpus = [book_2, book_2]
+    words = ["hej", "tjena", "dig"]
+    corpus = [["hej", "hej", "dig"]]
+
+    # hej
+    # tf = 2/3
+    # df = 1
+    # idf = 1/1 = 1
+    # tf_idf = log(1)
+
+    tf = calculate_tf(words, corpus)
+    df = calculate_df(words, corpus)
+    idf = calculate_idf(df, corpus)
+
+    df_idf = calculate_df_idf(tf, idf)
+    print(df_idf)
+
+
+
 
 
 if __name__ == '__main__':
