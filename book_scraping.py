@@ -18,4 +18,3 @@ class BookScraper:
         soup = BeautifulSoup(page.content, 'html.parser')
         # soup.prettify()
         return soup
-
