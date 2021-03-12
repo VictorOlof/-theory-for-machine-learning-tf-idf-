@@ -97,7 +97,7 @@ def calculate_idf(df, corpus):
         if df == 0:
             idf[key] = 0
         else:
-            idf[key] = np.log(N / df + 1)
+            idf[key] = np.log(N / (df + 1))
 
     return idf
 
@@ -146,7 +146,7 @@ def main():
 
     corpus = [book_2, book_2]
     words = ["hej", "tjena", "dig"]
-    corpus = [["hej", "hej", "dig"]]
+    corpus = [["hej", "hejsan"]]
 
     # hej
     # tf = 2/3
@@ -154,12 +154,17 @@ def main():
     # idf = 1/1 = 1
     # tf_idf = log(1)
 
+
     tf = calculate_tf(words, corpus)
+    print(f"tf: {tf}")
     df = calculate_df(words, corpus)
+    print(f"df {df}")
     idf = calculate_idf(df, corpus)
+    print(f"idf{idf}")
 
     df_idf = calculate_df_idf(tf, idf)
-    print(df_idf)
+    print(f"df-idf{df_idf}")
+
 
 
 
