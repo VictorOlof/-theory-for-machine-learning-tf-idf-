@@ -72,6 +72,7 @@ class PreProcessing:
     def unique_words(self, words):
         return set(words)
 
+
 class Tf_Idf:
     def calculate_tf(self, words, corpus):
         result = {}
@@ -82,7 +83,7 @@ class Tf_Idf:
         for word in words:
             for i, document in enumerate(corpus):
                 if word in set(document):
-                    tf = document.count(word)/len(document)
+                    tf = document.count(word) / len(document)
                     result[word].append([i, tf])
                 else:
                     result[word].append([i, 0])
@@ -93,10 +94,11 @@ class Tf_Idf:
         for word in words:
             df[word] = 0
 
-        for word in words:
-            for book in corpus:
-                if word in book:
+        for book in corpus:
+            for word in book:
+                if word in words:
                     df[word] = df[word] + 1
+
         return df
 
     def calculate_idf(self, df, corpus):
@@ -108,10 +110,9 @@ class Tf_Idf:
             if d_f == 0:
                 idf[key] = 0
             else:
-                idf[key] = N/d_f
+                idf[key] = N / d_f
 
         return idf
-
 
     def calculate_df_idf(self, tf, idf):
         tf_idf_dict = {}
@@ -165,22 +166,21 @@ def main():
     #
     # corpus = [book_2]
 
-    corpus = [["the"]]
-    words = ["not"]
+    corpus = [["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "not", "blue"]]
+    words = ["the", "sky", "is", "blue", "test"]
 
     tf = algorithm.calculate_tf(words, corpus)
-    # print(f"tf: {tf}")
+    print(f"tf: {tf}")
     df = algorithm.calculate_df(words, corpus)
-    # print(f"df {df}")
+    print(f"df {df}")
     idf = algorithm.calculate_idf(df, corpus)
-    # print(f"idf{idf}")
+    print(f"idf{idf}")
 
     df_idf = algorithm.calculate_df_idf(tf, idf)
     print(f"df-idf{df_idf}")
 
-
-
     matching_score = algorithm.calculate_matching_score(df_idf, corpus)
+
 
 if __name__ == '__main__':
     main()
