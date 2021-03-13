@@ -83,20 +83,20 @@ class Tf_Idf:
 
     def calc_df(self, corpus):
         df = {}
+
         for document in corpus:
             for word in document:
                 if word not in df.keys():
                     df[word] = 1
                 else:
                     df[word] = df[word] + 1
-        print(df)
-        print()
 
         return df
 
     def calc_tf_idf(self, df_dict, corpus):
         n = len(corpus)
         tf_idf = {}
+
         for i in range(n):
             tokens = corpus[i]
             print(corpus[i])
@@ -107,29 +107,19 @@ class Tf_Idf:
                 tf = tf_dict[token]
                 df = df_dict[token]
                 idf = np.log10(n + 1 / df + 1)  # eller n / (df + 1)
-                print(f"{token} idf : idf: {idf} n: {n} df: {df}")
+                # print(f"{token} idf : idf: {idf} n: {n} df: {df}")
                 tf_idf[i, token] = tf * idf
 
         return tf_idf
 
 
-
 def matching_score(query, tf_idf):
-    query = query.split()
     tokens = {}
 
     for token in query:
         tokens[token] = None
 
-
-    print("Matching Score")
-    print("\nQuery:", query)
-    print("")
-    print(tokens)
-
     query_weights = {}
-
-    print(len(tf_idf))
 
     for key in tf_idf.keys():
         if key[1] in tokens:
@@ -138,19 +128,10 @@ def matching_score(query, tf_idf):
             else:
                 query_weights[key[0]] = tf_idf[key]
 
-    print(f"query weights: {query_weights}")
-
-
     query_weights = sorted(query_weights.items(), key=lambda x: x[1], reverse=True)
     print(f"query weights: {query_weights}")
 
-    print("")
-
-    l = []
-
-    for i in query_weights:
-        l.append(i[0])
-    print(l)
+    return query_weights
 
 def main():
     pp = PreProcessing()
@@ -172,43 +153,11 @@ def main():
 
     corpus = [["hello"], ["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "blue"]]
     df_dict = algorithm.calc_df(corpus)
+    tf_idf = algorithm.calc_tf_idf(df_dict, corpus)
+    matching_score(["the", "sky", "is", "not"], tf_idf)
+
     total_vocab = [x for x in df_dict.keys()]
-
-
-    n = len(corpus)
-    tf_idf = {}
-    for i in range(n):
-        tokens = corpus[i]
-        print(corpus[i])
-        counter = len(tokens)
-        tf_dict = algorithm.calc_tf(tokens)
-
-        for token in set(tokens):
-            tf = tf_dict[token]
-            df = df_dict[token]
-            idf = np.log10(n + 1 / df + 1)  # eller n / (df + 1)
-            print(f"{token} idf : idf: {idf} n: {n} df: {df}")
-            tf_idf[i, token] = tf * idf
-    print(tf_idf)
-
-    test = algorithm.calc_tf_idf(df_dict, corpus)
-
-
-
-    matching_score("the sky is blue", tf_idf)
-
-
-    # print(f"tf: {tf}")
-
-    # print(f"df {df}")
-    # idf = algorithm.calculate_idf(df, corpus)
-    # print(f"idf{idf}")
-    #
-    # df_idf = algorithm.calculate_tf_idf(tf, idf)
-    # print(f"df-idf{df_idf}")
-    #
-    # matching_score = algorithm.calculate_matching_score(df_idf, corpus)
-    # print(f"matching score {matching_score}")
+    n = len(total_vocab)
 
 
 if __name__ == '__main__':
