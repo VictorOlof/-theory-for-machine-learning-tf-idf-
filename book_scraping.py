@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 
 
 class BookScraper:
-
     def get_story(self, link):
         soup = self._scrape_website(link)
         story = []
