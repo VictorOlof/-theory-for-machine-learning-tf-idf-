@@ -111,7 +111,7 @@ class Tf_Idf:
             if d_f == 0:
                 idf[key] = 0
             else:
-                idf[key] = np.log(N + 1 / d_f + 1) + 1
+                idf[key] = np.log10(N / d_f + 1)
 
         return idf
 
@@ -151,26 +151,28 @@ def main():
     pp = PreProcessing()
     algorithm = Tf_Idf()
 
-    book_scraper = BookScraper()
+    # book_scraper = BookScraper()
+    #
+    # link_1 = "https://www.gutenberg.org/files/64651/64651-h/64651-h.htm"
+    # link_2 = "https://www.gutenberg.org/files/64789/64789-h/64789-h.htm"
+    #
+    # body_book_1 = book_scraper.get_story(link_1)
+    # body_book_2 = book_scraper.get_story(link_2)
+    #
+    #
+    #
+    # words = pp.preprocess(body_book_1)
+    #
+    # print(body_book_1)
+    # print()
+    # words = pp.unique_words(words)
+    # book_2 = pp.preprocess(body_book_2)
+    # corpus = [book_2]
 
-    link_1 = "https://www.gutenberg.org/files/64651/64651-h/64651-h.htm"
-    link_2 = "https://www.gutenberg.org/files/64789/64789-h/64789-h.htm"
 
-    body_book_1 = book_scraper.get_story(link_1)
-    body_book_2 = book_scraper.get_story(link_2)
+    corpus = [["hello"], ["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "blue"]]
+    words = ["the", "sky", "is", "not"]
 
-
-
-    words = pp.preprocess(body_book_1)
-
-    print(body_book_1)
-    print()
-    words = pp.unique_words(words)
-    book_2 = pp.preprocess(body_book_2)
-    corpus = [book_2]
-
-    # corpus = [["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "not", "blue", "gauss", "the"]]
-    # words = ["the", "sky", "is", "blue", "test"]
 
     tf = algorithm.calculate_tf(words, corpus)
     print(f"tf: {tf}")
