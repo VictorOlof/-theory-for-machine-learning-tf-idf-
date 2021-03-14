@@ -23,7 +23,7 @@ def tf(sentence, all_words):
 
     for key, value in bag_of_words.items():
         if value > 0:
-            bag_of_words[key] = 1 + math.log(value)
+            bag_of_words[key] = value / len(sentence)
 
 
     return bag_of_words
@@ -86,8 +86,8 @@ def cosinus_similarity(a, b):
 
 
 def main():
-    sentence_1 = "the sky is not blue"
-    sentence_2 = "the sky is blue hej på dig"
+    sentence_1 = "the sky is blue not really"
+    sentence_2 = "the sky is blue"
     unique_words = set(sentence_1.split()).union(set(sentence_2.split()))
 
     tf_result_1 = tf(sentence_1, unique_words)

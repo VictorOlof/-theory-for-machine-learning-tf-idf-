@@ -74,15 +74,23 @@ class PreProcessing:
 
 
 class Tf_Idf:
-    def calc_tf(self, document):
+    def calc_tf(self, document, df):
         tf = {}
-        for word in set(document):
-            tf[word] = document.count(word) / len(document)
+        print(df)
+        print(document)
+
+
+        for key, value in df.items():
+            if key in document:
+                tf[key] = document.count(key) / len(document)
+            else:
+                tf[key] = 0
         return tf
 
 
     def calc_df(self, corpus):
         df = {}
+
 
         for document in corpus:
             for word in document:
@@ -99,20 +107,22 @@ class Tf_Idf:
 
         for i in range(n):
             tokens = corpus[i]
-            print(corpus[i])
+
             counter = len(tokens)
-            tf_dict = self.calc_tf(tokens)
+            tf_dict = self.calc_tf(tokens, df_dict)
+
 
             for token in set(tokens):
                 tf = tf_dict[token]
 
+
                 df = df_dict[token]
-                idf = np.log10(n / df + 1) # eller n / (df + 1)
-                print(f"word{token}")
-                print(f"tf {tf}")
-                print(f"df {df}")
-                print(f"tf_idf {tf_idf}")
-                # print(f"{token} idf : idf: {idf} n: {n} df: {df}")
+                idf = np.log(n / df + 1) # eller n / (df + 1)
+                # print(f"word{token}")
+                # print(f"tf {tf}")
+                # print(f"df {df}")
+                # print(f"tf_idf {tf_idf}")
+                # # print(f"{token} idf : idf: {idf} n: {n} df: {df}")
                 tf_idf[i, token] = tf * idf
 
         return tf_idf
@@ -159,10 +169,12 @@ def main():
     corpus = [["the", "sky", "is", "blue"]]
     df_dict = algorithm.calc_df(corpus)
     tf_idf = algorithm.calc_tf_idf(df_dict, corpus)
-    matching_score(["the", "sky", "is", "not", "blue"], tf_idf)
+    # matching_score(["the", "sky", "is", "not", "blue"], tf_idf)
 
     total_vocab = [x for x in df_dict.keys()]
     n = len(total_vocab)
+    print(tf_idf)
+    print(matching_score(["the", "sky", "is", "blue", "not", "really"], tf_idf))
 
 
 if __name__ == '__main__':
