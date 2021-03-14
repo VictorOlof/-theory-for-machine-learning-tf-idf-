@@ -105,8 +105,13 @@ class Tf_Idf:
 
             for token in set(tokens):
                 tf = tf_dict[token]
+
                 df = df_dict[token]
-                idf = np.log10(n + 1 / df + 1)  # eller n / (df + 1)
+                idf = np.log10(n / df + 1)  # eller n / (df + 1)
+                print(f"word{token}")
+                print(f"tf {tf}")
+                print(f"df {df}")
+                print(f"tf_idf {tf_idf}")
                 # print(f"{token} idf : idf: {idf} n: {n} df: {df}")
                 tf_idf[i, token] = tf * idf
 
