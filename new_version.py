@@ -1,19 +1,30 @@
+import math
+
 import numpy
+import numpy as np
+from numpy.dual import norm
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
-def tf(sentence):
+def tf(sentence, all_words):
     bag_of_words = {}
 
     sentence = sentence.split()
 
-    for word in sentence:
-        if word not in bag_of_words:
-            bag_of_words[word] = 1
+    for word in all_words:
+        if word in sentence:
+            if word not in bag_of_words:
+                bag_of_words[word] = 1
+            else:
+                bag_of_words[word] = bag_of_words[word] + 1
         else:
-            bag_of_words[word] = bag_of_words[word] + 1
+            bag_of_words[word] = 0
 
     for key, value in bag_of_words.items():
-        bag_of_words[key] = value / len(sentence)
+        if value > 0:
+            bag_of_words[key] = 1 + math.log(value)
+
 
     return bag_of_words
 
@@ -26,10 +37,10 @@ def df(sentence_1, sentence_2):
     for word in unique_words:
         df_dict[word] = 0
         if word in sentence_1.split():
-            df_dict[word] = df_dict[word] + 1
+            df_dict[word] = df_dict[word] + sentence_1.split().count(word)
 
         if word in sentence_2.split():
-            df_dict[word] = df_dict[word] + 1
+            df_dict[word] = df_dict[word] + sentence_2.split().count(word)
 
     return df_dict
 
@@ -37,9 +48,11 @@ def idf(total_sentences, df):
     idf_dict = {}
 
     for key, value in df.items():
-        idf_dict[key] = numpy.log10(total_sentences / df[key] + 1)
-        print(df[key])
+        idf_dict[key] = 1 + math.log(total_sentences / df[key])
+
+
     return idf_dict
+
 
 def tf_idf(tf, idf):
     tf_idf_dict = {}
@@ -52,31 +65,71 @@ def tf_idf(tf, idf):
 
 def matching_score(sentence_1, sentence_2):
 
-    score = 0
+    score = 1
 
     for key, value in sentence_1.items():
         if key in sentence_2:
             score = score + sentence_2[key]
     return score
 
+def vectorize(tf_idf_result):
+    vector = []
+
+    for key, value in tf_idf_result.items():
+        vector.append(value)
+
+    return vector
+
+def cosinus_similarity(a, b):
+
+    return numpy.dot(a, b) / (norm(a) * norm(b))
+
+
 def main():
-    sentence_1 = "the"
-    sentence_2 = "the sky is fjakdls fdlsk fdslkj fdsklj fdsjkl, fdsfd, fsdfsd"
-    tf_result_1 = tf(sentence_1)
-    tf_result_2 = tf(sentence_2)
+    sentence_1 = "the sky is not blue"
+    sentence_2 = "the sky is blue hej på dig"
+    unique_words = set(sentence_1.split()).union(set(sentence_2.split()))
+
+    tf_result_1 = tf(sentence_1, unique_words)
+    tf_result_2 = tf(sentence_2, unique_words)
 
     df_result = df(sentence_1, sentence_2)
     idf_result = idf(2, df_result)
 
     tf_idf_result_1 = tf_idf(tf_result_1, idf_result)
     tf_idf_result_2 = tf_idf(tf_result_2, idf_result)
+    # print(tf_idf_result_1)
+    # print(tf_idf_result_2)
 
-    print(tf_idf_result_1)
-    print(tf_idf_result_2)
+
 
     match = matching_score(tf_idf_result_1, tf_idf_result_2)
 
-    print(match)
+    a = vectorize(tf_idf_result_1)
+    b = vectorize(tf_idf_result_2)
+    similarity = cosinus_similarity(a, b)
+
+    print(a)
+    print(b)
+    print(similarity)
+    #
+    # corpus = [
+    # #     'the sky is blue',
+    # #     'the sky is not',
+    # # ]
+    # #
+    # # vectorizer = TfidfVectorizer()
+    # # tfidf = vectorizer.fit_transform(corpus)
+    # # words = vectorizer.get_feature_names()
+    # similarity_matrix = cosine_similarity(tfidf)
+    # #
+    # # print(tfidf)
+    # # print(similarity_matrix)
+
+
+
+
+
 
 
 

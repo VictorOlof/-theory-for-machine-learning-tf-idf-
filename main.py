@@ -156,7 +156,7 @@ def main():
     # book_2 = pp.preprocess(body_book_2)
     # corpus = [book_2]
 
-    corpus = [["the", "sky", "is", "not", "blue"]]
+    corpus = [["the", "sky", "is", "blue"]]
     df_dict = algorithm.calc_df(corpus)
     tf_idf = algorithm.calc_tf_idf(df_dict, corpus)
     matching_score(["the", "sky", "is", "not", "blue"], tf_idf)
