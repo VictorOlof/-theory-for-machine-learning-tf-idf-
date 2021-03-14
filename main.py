@@ -107,7 +107,7 @@ class Tf_Idf:
                 tf = tf_dict[token]
 
                 df = df_dict[token]
-                idf = np.log10(n / df + 1)  # eller n / (df + 1)
+                idf = np.log10(n / df + 1) # eller n / (df + 1)
                 print(f"word{token}")
                 print(f"tf {tf}")
                 print(f"df {df}")
@@ -156,10 +156,10 @@ def main():
     # book_2 = pp.preprocess(body_book_2)
     # corpus = [book_2]
 
-    corpus = [["hello"], ["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "blue"]]
+    corpus = [["the", "sky", "is", "not", "blue"]]
     df_dict = algorithm.calc_df(corpus)
     tf_idf = algorithm.calc_tf_idf(df_dict, corpus)
-    matching_score(["the", "sky", "is", "not"], tf_idf)
+    matching_score(["the", "sky", "is", "not", "blue"], tf_idf)
 
     total_vocab = [x for x in df_dict.keys()]
     n = len(total_vocab)
