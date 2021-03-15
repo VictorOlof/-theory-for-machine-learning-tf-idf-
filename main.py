@@ -4,8 +4,6 @@ from collections import Counter
 import nltk
 import numpy as np
 
-from book_scraping import BookScraper
-
 
 def print_book(book):
     return print(book)

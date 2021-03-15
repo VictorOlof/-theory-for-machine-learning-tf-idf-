@@ -1,150 +1,133 @@
 import math
+import string
+from collections import Counter
 
+import nltk
 import numpy
-import numpy as np
-from numpy.dual import norm
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 
-def tf(sentence, all_words):
-    bag_of_words = {}
+class PreProcessing:
+    def preprocess(self, words):
+        words = self.clean_punctuation(words)
+        words = self.normalizing_book(words)
+        words = self.remove_stop_words(words)
+        words = self.remove_single_characters(words)
+        words = self.numbers_to_word(words)
+        words = self.lemmatization_words(words)
+        words = self.stem_words(words)
 
-    sentence = sentence.split()
+        return words
 
-    for word in all_words:
-        if word in sentence:
-            if word not in bag_of_words:
-                bag_of_words[word] = 1
-            else:
-                bag_of_words[word] = bag_of_words[word] + 1
-        else:
-            bag_of_words[word] = 0
+    def tokenization(self, text):
+        return text.split()
 
-    for key, value in bag_of_words.items():
-        if value > 0:
-            bag_of_words[key] = value / len(sentence)
+    def clean_punctuation(self, text):
+        return [w.translate(str.maketrans('', '', string.punctuation)) for w in text]
 
-    return bag_of_words
+    def normalizing_book(self, text):
+        return [word.lower() for word in text]
+
+    def remove_stop_words(self, text):
+        from nltk.corpus import stopwords  # list if stopwords, 'i', 'me', 'my' etc.
+
+        return [word for word in text if word not in stopwords.words('english')]
+
+    def remove_single_characters(self, book):
+        return [word for word in book if len(word) > 1]
+
+    def stem_words(self, text):
+        """Ordstam - Example “fishing,” “fished,” “fisher” --> fish """
+        from nltk.stem.porter import PorterStemmer
+
+        porter = PorterStemmer()
+        return [porter.stem(word) for word in text]
+
+    def lemmatization_words(self, text):
+        """Dictionary word reduced to a root synonym"""
+        from nltk.stem import WordNetLemmatizer
+        nltk.download('wordnet')
+        lemmatizer = WordNetLemmatizer()
+        return [lemmatizer.lemmatize(word) for word in text]
+
+    def numbers_to_word(self, text):
+        """ 102 --> 'one hundred and two' """
+        import num2words
+        return [num2words.num2words(word) if word.isnumeric() else word for word in text]
 
 
-def df(sentence_1, sentence_2):
-    df_dict = {}
-
-    unique_words = set(sentence_1.split()).union(set(sentence_2.split()))
+def tf(text, unique_words):
+    tf_dict = {}
+    text = text.split()
 
     for word in unique_words:
-        df_dict[word] = 0
-        if word in sentence_1.split():
-            df_dict[word] = df_dict[word] + sentence_1.split().count(word)
 
-        if word in sentence_2.split():
-            df_dict[word] = df_dict[word] + sentence_2.split().count(word)
+        if word in text:
 
-    return df_dict
+            if word not in tf_dict:
+                tf_dict[word] = 1
+            else:
+                tf_dict[word] = tf_dict[word] + 1
+
+        else:
+            tf_dict[word] = 0
+
+    return {k: v / len(text) for k, v in tf_dict.items() if v > 0}
 
 
-def idf(total_sentences, df):
-    idf_dict = {}
+def df(text_1, text_2):
+    # df är antalet dokument som innehåller ett ord
+    return dict(Counter(list(set(text_2.split())) + list(set(text_1.split()))))
 
-    for key, value in df.items():
-        idf_dict[key] = 1 + math.log(total_sentences / df[key])
 
-    return idf_dict
+def idf(n, df):
+    return {k: 1 + math.log(n / df[k]) for k, v in df.items()}
 
 
 def tf_idf(tf, idf):
-    tf_idf_dict = {}
+    # räknar ut term frequency * invert document frequency
+    return {k: tf[k] * idf[k] for k, v in tf.items()}
 
-    for key in tf.keys():
-        tf_idf_dict[key] = tf[key] * idf[key]
 
-    return tf_idf_dict
+def cosinus_similarity(vector_1, vector_2):  # <-- DENNA GÄLLER
+    dot_product = sum(a * b for a, b in list(zip(vector_1, vector_2)))
+    length_a = numpy.sqrt(sum(x * x for x in vector_1))
+    length_b = numpy.sqrt(sum(x * x for x in vector_2))
 
-def cosinus_simularity2(self, vector_1, vector_2): # <-- DENNA GÄLLER
-    dot_product = 0
-    length_a = 0
-    length_b = 0
-
-    print("zip ", list(zip(vector_1, vector_2)))
-
-    for a, b in list(zip(vector_1, vector_2)):
-        dot_product = dot_product + a * b
-    print(dot_product)
-    for i in vector_1:
-        length_a = length_a + i * i
-    for i in vector_2:
-        length_b = length_b + i * i
-    length_a = numpy.sqrt(length_a)
-    length_b = numpy.sqrt(length_b)
-
-    cos = dot_product / (length_a * length_b)
-
-    return cos
+    return dot_product / (length_a * length_b)
 
 
 def matching_score(sentence_1, sentence_2):
-    score = 1
-
-    for key, value in sentence_1.items():
-        if key in sentence_2:
-            score = score + sentence_2[key]
-    return score
+    return sum([sentence_2[key] for key in sentence_1.keys() if key in sentence_2])
 
 
-def vectorize(tf_idf_result):
-    vector = []
-
-    for key, value in tf_idf_result.items():
-        vector.append(value)
-
-    return vector
-
-
-def cosinus_similarity(a, b):
-    return numpy.dot(a, b) / (norm(a) * norm(b))
+def vectorize(dict):
+    return list(dict.values())
 
 
 def main():
-    sentence_1 = "the sky is blue"
-    sentence_2 = "the sky is blue"
-    unique_words = set(sentence_1.split()).union(set(sentence_2.split()))
+    text_1 = "the sky is blue"
+    text_2 = "the sky is blue"
+    unique_words = set(text_1.split()).union(set(text_2.split()))
 
-    tf_result_1 = tf(sentence_1, unique_words)
-    tf_result_2 = tf(sentence_2, unique_words)
+    tf_result_1 = tf(text_1, unique_words)
+    tf_result_2 = tf(text_2, unique_words)
 
-    df_result = df(sentence_1, sentence_2)
+    df_result = df(text_1, text_2)
     idf_result = idf(2, df_result)
 
     tf_idf_result_1 = tf_idf(tf_result_1, idf_result)
     tf_idf_result_2 = tf_idf(tf_result_2, idf_result)
-    # print(tf_idf_result_1)
-    # print(tf_idf_result_2)
-
     match = matching_score(tf_idf_result_1, tf_idf_result_2)
 
-    a = vectorize(tf_idf_result_1)
-    b = vectorize(tf_idf_result_2)
-    similarity = cosinus_similarity(a, b)
+    vector_1 = vectorize(tf_idf_result_1)
+    vector_2 = vectorize(tf_idf_result_2)
+    similarity = cosinus_similarity(vector_1, vector_2)
 
     print("tdidf ", tf_idf_result_1)
-    print("a", a)
-    print("b", b)
+    print("a", vector_1)
+    print("b", vector_2)
     print("match", match)
     print(similarity)
-    #
-    # corpus = [
-    # #     'the sky is blue',
-    # #     'the sky is not',
-    # # ]
-    # #
-    # # vectorizer = TfidfVectorizer()
-    # # tfidf = vectorizer.fit_transform(corpus)
-    # # words = vectorizer.get_feature_names()
-    # similarity_matrix = cosine_similarity(tfidf)
-    # #
-    # # print(tfidf)
-    # # print(similarity_matrix)
 
 
 if __name__ == '__main__':
