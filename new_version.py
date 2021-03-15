@@ -25,7 +25,6 @@ def tf(sentence, all_words):
         if value > 0:
             bag_of_words[key] = value / len(sentence)
 
-
     return bag_of_words
 
 
@@ -44,12 +43,12 @@ def df(sentence_1, sentence_2):
 
     return df_dict
 
+
 def idf(total_sentences, df):
     idf_dict = {}
 
     for key, value in df.items():
         idf_dict[key] = 1 + math.log(total_sentences / df[key])
-
 
     return idf_dict
 
@@ -58,19 +57,40 @@ def tf_idf(tf, idf):
     tf_idf_dict = {}
 
     for key in tf.keys():
-
         tf_idf_dict[key] = tf[key] * idf[key]
 
     return tf_idf_dict
 
-def matching_score(sentence_1, sentence_2):
+def cosinus_simularity2(self, vector_1, vector_2): # <-- DENNA GÄLLER
+    dot_product = 0
+    length_a = 0
+    length_b = 0
 
+    print("zip ", list(zip(vector_1, vector_2)))
+
+    for a, b in list(zip(vector_1, vector_2)):
+        dot_product = dot_product + a * b
+    print(dot_product)
+    for i in vector_1:
+        length_a = length_a + i * i
+    for i in vector_2:
+        length_b = length_b + i * i
+    length_a = numpy.sqrt(length_a)
+    length_b = numpy.sqrt(length_b)
+
+    cos = dot_product / (length_a * length_b)
+
+    return cos
+
+
+def matching_score(sentence_1, sentence_2):
     score = 1
 
     for key, value in sentence_1.items():
         if key in sentence_2:
             score = score + sentence_2[key]
     return score
+
 
 def vectorize(tf_idf_result):
     vector = []
@@ -80,13 +100,13 @@ def vectorize(tf_idf_result):
 
     return vector
 
-def cosinus_similarity(a, b):
 
+def cosinus_similarity(a, b):
     return numpy.dot(a, b) / (norm(a) * norm(b))
 
 
 def main():
-    sentence_1 = "the sky is blue not really"
+    sentence_1 = "the sky is blue"
     sentence_2 = "the sky is blue"
     unique_words = set(sentence_1.split()).union(set(sentence_2.split()))
 
@@ -101,16 +121,16 @@ def main():
     # print(tf_idf_result_1)
     # print(tf_idf_result_2)
 
-
-
     match = matching_score(tf_idf_result_1, tf_idf_result_2)
 
     a = vectorize(tf_idf_result_1)
     b = vectorize(tf_idf_result_2)
     similarity = cosinus_similarity(a, b)
 
-    print(a)
-    print(b)
+    print("tdidf ", tf_idf_result_1)
+    print("a", a)
+    print("b", b)
+    print("match", match)
     print(similarity)
     #
     # corpus = [
@@ -125,32 +145,6 @@ def main():
     # #
     # # print(tfidf)
     # # print(similarity_matrix)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
