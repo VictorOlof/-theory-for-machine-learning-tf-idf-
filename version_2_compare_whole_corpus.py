@@ -109,11 +109,9 @@ class Tf_Idf:
             if d_f == 0:
                 idf[key] = 0
             else:
-<<<<<<< HEAD:version_2_compare_whole_corpus.py
+
                 idf[key] = np.log(N / d_f + 1)
-=======
-                idf[key] = np.log10(N / d_f + 1)
->>>>>>> master:main.py
+
 
         return idf
 

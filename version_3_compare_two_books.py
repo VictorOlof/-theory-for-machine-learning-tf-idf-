@@ -127,7 +127,6 @@ def main():
     # cleaned_1 = ["the", "sky", "is", "not", "blue"]
     # cleaned_2 = ["the", "sky", "is", "not"]
 
-
     unique_words = set(cleaned_1).union(set(cleaned_2))
 
     tf_result_1 = tf(cleaned_1, unique_words)
