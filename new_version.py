@@ -1,27 +1,19 @@
-import math
-import string
-from collections import Counter
-
-import nltk
-import numpy
-
-
 class PreProcessing:
-    def preprocess(self, words):
-        words = self.clean_punctuation(words)
-        words = self.normalizing_book(words)
-        words = self.remove_stop_words(words)
-        words = self.remove_single_characters(words)
-        words = self.numbers_to_word(words)
-        words = self.lemmatization_words(words)
-        words = self.stem_words(words)
+    def preprocess(self, text):
+        text = self.clean_punctuation(text)
+        text = self.normalizing_book(text)
+        text = self.remove_stop_words(text)
+        text = self.remove_single_characters(text)
+        text = self.numbers_to_word(text)
+        text = self.lemmatization_words(text)
+        text = self.stem_words(text)
+        return text
 
-        return words
-
-    def tokenization(self, text):
+    def tokenize(self, text):
         return text.split()
 
     def clean_punctuation(self, text):
+        import string
         return [w.translate(str.maketrans('', '', string.punctuation)) for w in text]
 
     def normalizing_book(self, text):
@@ -45,6 +37,7 @@ class PreProcessing:
     def lemmatization_words(self, text):
         """Dictionary word reduced to a root synonym"""
         from nltk.stem import WordNetLemmatizer
+        import nltk
         nltk.download('wordnet')
         lemmatizer = WordNetLemmatizer()
         return [lemmatizer.lemmatize(word) for word in text]
@@ -57,30 +50,27 @@ class PreProcessing:
 
 def tf(text, unique_words):
     tf_dict = {}
-    text = text.split()
 
     for word in unique_words:
-
         if word in text:
-
-            if word not in tf_dict:
-                tf_dict[word] = 1
-            else:
-                tf_dict[word] = tf_dict[word] + 1
-
+            tf_dict[word] = text.count(word)
         else:
             tf_dict[word] = 0
+
+    print(tf_dict)
 
     return {k: v / len(text) for k, v in tf_dict.items() if v > 0}
 
 
 def df(text_1, text_2):
     # df är antalet dokument som innehåller ett ord
-    return dict(Counter(list(set(text_2.split())) + list(set(text_1.split()))))
+    from collections import Counter
+    return dict(Counter(list(set(text_2)) + list(set(text_1))))
 
 
 def idf(n, df):
-    return {k: 1 + math.log(n / df[k]) for k, v in df.items()}
+    import math
+    return {k: math.log(n / df[k] + 1) for k, v in df.items()}
 
 
 def tf_idf(tf, idf):
@@ -89,6 +79,7 @@ def tf_idf(tf, idf):
 
 
 def cosinus_similarity(vector_1, vector_2):  # <-- DENNA GÄLLER
+    import numpy
     dot_product = sum(a * b for a, b in list(zip(vector_1, vector_2)))
     length_a = numpy.sqrt(sum(x * x for x in vector_1))
     length_b = numpy.sqrt(sum(x * x for x in vector_2))
@@ -96,38 +87,65 @@ def cosinus_similarity(vector_1, vector_2):  # <-- DENNA GÄLLER
     return dot_product / (length_a * length_b)
 
 
-def matching_score(sentence_1, sentence_2):
-    return sum([sentence_2[key] for key in sentence_1.keys() if key in sentence_2])
+def matching_score(text_1, text_2):
+    return sum([text_2[key] for key in text_1.keys() if key in text_2])
 
 
 def vectorize(dict):
     return list(dict.values())
 
 
+class BookScraper:
+    def get_story(self, link):
+        soup = self._scrape_website(link)
+        story = []
+        for p in soup.select("p"):
+            paragraph = p.get_text().split()
+            for word in paragraph:
+                story.append(word)
+        return story
+
+    def _scrape_website(self, link):
+        import requests
+        from bs4 import BeautifulSoup
+
+        page = requests.get(link)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        return soup
+
 def main():
-    text_1 = "the sky is blue"
-    text_2 = "the sky is blue"
-    unique_words = set(text_1.split()).union(set(text_2.split()))
+    book_scraper = BookScraper()
+    pre_processing = PreProcessing()
+    link_1 = "https://www.gutenberg.org/files/7353/7353-h/7353-h.htm"
+    link_2 = "https://www.gutenberg.org/files/3837/3837-h/3837-h.htm"
+    text_1 = book_scraper.get_story(link_1)
+    text_2 = book_scraper.get_story(link_2)
 
-    tf_result_1 = tf(text_1, unique_words)
-    tf_result_2 = tf(text_2, unique_words)
+    # cleaned_1 = ["the", "sky", "is", "blue"]
+    # cleaned_2 = ["the", "sky", "is", "blue"]
 
-    df_result = df(text_1, text_2)
+    cleaned_1 = pre_processing.preprocess(text_1)
+    cleaned_2 = pre_processing.preprocess(text_2)
+
+    unique_words = set(cleaned_1).union(set(cleaned_2))
+
+    tf_result_1 = tf(cleaned_1, unique_words)
+    tf_result_2 = tf(cleaned_2, unique_words)
+
+    df_result = df(cleaned_1, cleaned_2)
     idf_result = idf(2, df_result)
 
     tf_idf_result_1 = tf_idf(tf_result_1, idf_result)
     tf_idf_result_2 = tf_idf(tf_result_2, idf_result)
+
     match = matching_score(tf_idf_result_1, tf_idf_result_2)
 
     vector_1 = vectorize(tf_idf_result_1)
     vector_2 = vectorize(tf_idf_result_2)
     similarity = cosinus_similarity(vector_1, vector_2)
 
-    print("tdidf ", tf_idf_result_1)
-    print("a", vector_1)
-    print("b", vector_2)
-    print("match", match)
-    print(similarity)
+    print(f"Match: {match} ")
+    print(f"Similarity: {similarity}")
 
 
 if __name__ == '__main__':
