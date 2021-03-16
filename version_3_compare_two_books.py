@@ -121,11 +121,12 @@ def main():
     text_1 = book_scraper.get_story(link_1)
     text_2 = book_scraper.get_story(link_2)
 
-    # cleaned_1 = ["the", "sky", "is", "blue"]
-    # cleaned_2 = ["the", "sky", "is", "blue"]
-
     cleaned_1 = pre_processing.preprocess(text_1)
     cleaned_2 = pre_processing.preprocess(text_2)
+
+    # cleaned_1 = ["the", "sky", "is", "not", "blue"]
+    # cleaned_2 = ["the", "sky", "is", "not"]
+
 
     unique_words = set(cleaned_1).union(set(cleaned_2))
 
@@ -144,7 +145,7 @@ def main():
     vector_2 = vectorize(tf_idf_result_2)
     similarity = cosinus_similarity(vector_1, vector_2)
 
-    print(f"Match: {match} ")
+    print(f"Match: {match}")
     print(f"Similarity: {similarity}")
 
 
