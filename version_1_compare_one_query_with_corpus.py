@@ -4,8 +4,6 @@ from collections import Counter
 import nltk
 import numpy as np
 
-from book_scraping import BookScraper
-
 
 def print_book(book):
     return print(book)
@@ -74,83 +72,72 @@ class PreProcessing:
 
 
 class Tf_Idf:
-    def calculate_tf(self, words, corpus):
-        result = {}
+    def calc_tf(self, document, df):
+        tf = {}
 
-        for word in words:
-            result[word] = []
-
-        for word in words:
-            for i, document in enumerate(corpus):
-                if word in set(document):
-                    tf = document.count(word) / len(document)
-                    result[word].append([i, tf])
-                else:
-                    result[word].append([i, 0])
-        return result
+        for key, value in df.items():
+            if key in document:
+                tf[key] = document.count(key) / len(document)
+            else:
+                tf[key] = 0
+        return tf
 
 
-    def calculate_df(self, words, corpus):
+    def calc_df(self, corpus):
         df = {}
-        for word in words:
-            df[word] = 0
 
-        for book in corpus:
-            for word in book:
-                if word in words:
+        for document in corpus:
+            for word in document:
+                if word not in df.keys():
+                    df[word] = 1
+                else:
                     df[word] = df[word] + 1
+
         return df
 
+    def calc_tf_idf(self, df_dict, corpus):
+        n = len(corpus)
+        tf_idf = {}
 
-    def calculate_idf(self, df, corpus):
-        idf = {}
+        for i in range(n):
+            tokens = corpus[i]
 
-        N = len(corpus)
+            tf_dict = self.calc_tf(tokens, df_dict)
 
-        for key, d_f in df.items():
-            if d_f == 0:
-                idf[key] = 0
+            for token in set(tokens):
+                tf = tf_dict[token]
+
+
+                df = df_dict[token]
+                idf = np.log(n / df + 1) # eller n / (df + 1)
+                tf_idf[i, token] = tf * idf
+
+        return tf_idf
+
+
+def matching_score(query, tf_idf):
+    tokens = {}
+
+    for token in query:
+        tokens[token] = None
+
+    to_compare_with = {}
+
+    for key in tf_idf.keys():
+        if key[1] in tokens:
+            if key[0] in to_compare_with.keys():
+                to_compare_with[key[0]] += tf_idf[key]
             else:
-                idf[key] = np.log10(N / d_f + 1)
+                to_compare_with[key[0]] = tf_idf[key]
 
-        return idf
+    to_compare_with = sorted(to_compare_with.items(), key=lambda x: x[1], reverse=True)
 
-
-    def calculate_tf_idf(self, tf, idf):
-        tf_idf_dict = {}
-
-        for word in tf.keys():
-            tf_idf_dict[word] = []
-
-        for word, pairs in tf.items():
-            for pair in pairs:
-                index, tf = pair
-
-                if idf[word] != 0:
-                    tf_idf = tf * idf[word]
-                else:
-                    tf_idf = 0
-                tf_idf_dict[word].append([index, tf_idf])
-        return tf_idf_dict
-
-
-    def calculate_matching_score(self, tf_idf, corpus):
-        tf_idf_dict = {}
-
-        for i in range(0, len(corpus)):
-            tf_idf_dict[i] = 0
-
-        for word, books in tf_idf.items():
-            for book in books:
-                if book[1] is not None:
-                    tf_idf_dict[book[0]] = tf_idf_dict[book[0]] + book[1]
-        return tf_idf_dict
-
+    return to_compare_with
 
 def main():
     pp = PreProcessing()
     algorithm = Tf_Idf()
-
+    #
     # book_scraper = BookScraper()
     #
     # link_1 = "https://www.gutenberg.org/files/64651/64651-h/64651-h.htm"
@@ -159,33 +146,23 @@ def main():
     # body_book_1 = book_scraper.get_story(link_1)
     # body_book_2 = book_scraper.get_story(link_2)
     #
+    # book_to_compare = pp.preprocess(body_book_1)
     #
-    #
-    # words = pp.preprocess(body_book_1)
-    #
-    # print(body_book_1)
-    # print()
-    # words = pp.unique_words(words)
+    # words = pp.unique_words(book_to_compare)
     # book_2 = pp.preprocess(body_book_2)
     # corpus = [book_2]
 
-
     corpus = [["hello"], ["the", "sky", "is", "not", "blue"], ["the", "sky", "is", "blue"]]
-    words = ["the", "sky", "is", "not"]
+    df_dict = algorithm.calc_df(corpus)
+    tf_idf = algorithm.calc_tf_idf(df_dict, corpus)
+    # matching_score(["the", "sky", "is", "not", "blue"], tf_idf)
 
+    total_vocab = [x for x in df_dict.keys()]
+    n = len(total_vocab)
+    
+    match = matching_score(["the", "sky", "is", "not"], tf_idf)
 
-    tf = algorithm.calculate_tf(words, corpus)
-    print(f"tf: {tf}")
-    df = algorithm.calculate_df(words, corpus)
-    print(f"df {df}")
-    idf = algorithm.calculate_idf(df, corpus)
-    print(f"idf{idf}")
-
-    df_idf = algorithm.calculate_tf_idf(tf, idf)
-    print(f"df-idf{df_idf}")
-
-    matching_score = algorithm.calculate_matching_score(df_idf, corpus)
-    print(f"matching score {matching_score}")
+    print(f"Match: {match}")
 
 
 if __name__ == '__main__':
